@@ -39,15 +39,11 @@ local OwnerList = {
 function Build(Map)
 	purchase.Event:Connect(function(Owner, Button)
 		local base = Map[Players[Owner].Team.Name].Parts.Base
-
 		local buildPart = building[Button]:Clone()
 		buildPart.Parent = base.Parent.Parent.Parts
-
 		local thePosition = ThePosition(buildPart, building.Base, base)
 		local theRotation = Rotation(building[Button], building.Base, base)
-
 		buildPart:PivotTo(thePosition * theRotation)
-
 		local weld = Instance.new("Weld", base)
 		weld.Part0 = base
 		if buildPart:IsA("Model") then
@@ -55,9 +51,7 @@ function Build(Map)
 		else
 			weld.Part1 = buildPart
 		end
-
 		base.Parent.Parent.Buttons[Button]:Destroy()
-
 		if buildPart:FindFirstChild("Type") and buildPart.Type:IsA("StringValue") then
 			workingModel[buildPart.Type.Value](buildPart)
 		end
@@ -66,41 +60,32 @@ end
 
 function Button(Owner, base, currentFloor)
 	if not buttons:FindFirstChild("Floor "..currentFloor) then return end
-
 	local debounce = false
 	local theButtons = buttons["Floor "..currentFloor]
-
 	for i, allButtons in pairs(theButtons:GetChildren()) do
 		local clonedButton = allButtons:Clone()
 		clonedButton.PrimaryPart.Anchored = true
 		clonedButton.Parent = base.Parent.Parent.Buttons
-
 		local priceGui = ServerStorage.Guis.PriceGui:Clone()
 		priceGui.Parent = clonedButton
 		priceGui.PriceLabel.Text = "$"..clonedButton.Price.Value
-
 		local thePosition = ThePosition(clonedButton,building.Base,base)
 		local theRotation = Rotation(clonedButton, building.Base, base)
 		clonedButton:PivotTo(thePosition * theRotation)
-
 		local activeFunction
 		activeFunction = clonedButton.PrimaryPart.Touched:Connect(function(hit)
 			if debounce == false and hit.Parent:FindFirstChild("Humanoid") then
 				local plrTeam = Players[hit.Parent.Name].Team.Name
-
 				if plrTeam ~= base.Parent.Parent.Name then return end
 				if Players[Owner].leaderstats.Cash.Value >= clonedButton.Price.Value then
 					debounce = true
 					purchase:Fire(Owner, clonedButton.Name)
 					Players[Owner].leaderstats.Cash.Value -= clonedButton.Price.Value
 					task.wait(0.01)
-
 					if #base.Parent.Parent.Buttons:GetChildren() <= 0 then
 						currentFloor += 1
-						--activeFunction:Disconnect()
 						Button(Owner, base, currentFloor)
 					end
-
 					activeFunction:Disconnect()
 					debounce = false
 				end
@@ -115,12 +100,10 @@ function ThePosition(buildPart, part1, part2)
 	local x = 0
 	local y = 0
 	local z = 0
-
 	local currentModel = buildPart:GetPivot()
 	local PtPosition1 = part1.Position
 	local PtPosition2 = part2.Position
 	local theBuildedPart = nil
-
 	if buildPart:IsA("Model") then
 		theBuildedPart = currentModel.Position
 	elseif buildPart:IsA("Part")
@@ -129,7 +112,6 @@ function ThePosition(buildPart, part1, part2)
 	then
 		theBuildedPart = buildPart.Position
 	end
-
 	if part2.Position.X >= part1.Position.X then
 		x = theBuildedPart.X + (PtPosition2.X-PtPosition1.X)
 	else
@@ -146,7 +128,6 @@ function ThePosition(buildPart, part1, part2)
 		z = theBuildedPart.Z - (math.abs(PtPosition2.Z)+PtPosition1.Z)
 	end
 	result = CFrame.new(Vector3.new(x,y,z))
-
 	return result
 end
 
@@ -155,11 +136,9 @@ function Rotation(buildPart, part1, part2)
 	local x = 0
 	local y = 0
 	local z = 0
-
 	local PtRotation1 = part1.Orientation
 	local PtRotation2 = part2.Orientation
 	local theBuildedPart = nil
-
 	if buildPart:IsA("Model") then
 		theBuildedPart = buildPart.PrimaryPart.Orientation
 	elseif buildPart:IsA("Part")
@@ -168,7 +147,6 @@ function Rotation(buildPart, part1, part2)
 	then
 		theBuildedPart = buildPart.Orientation
 	end
-
 	if part2.Orientation.X >= part1.Orientation.X then
 		x = theBuildedPart.X + (PtRotation2.X-PtRotation1.X)
 	else
@@ -184,9 +162,7 @@ function Rotation(buildPart, part1, part2)
 	else
 		z = theBuildedPart.Z - (math.abs(PtRotation2.Z)+PtRotation1.Z)
 	end
-
 	result = CFrame.Angles(math.rad(x),math.rad(y),math.rad(z))
-
 	return result
 end
 
@@ -194,29 +170,31 @@ end
 function workingModel.Dropper(dropper)
 	local timeRate = dropper.DropRate.Value
 	local counter = 0
-
-	RunService.Heartbeat:Connect(function(deltaTime)
-		counter = counter + deltaTime
-
-		if counter >= timeRate then
-			counter = counter - timeRate
-
-			local part = Instance.new("Part")
-			part.Parent = dropper.Parent.Parent.IncomeOrbs
-			part.Name = "Research Orb"
-			part.Color = Color3.new(0.235294, 0, 1)
-			part.Material=("Neon")
-			part.CFrame = dropper.Drop.CFrame - Vector3.new(0,1.4,0)
-			part.Size=Vector3.new(1, 1, 1) -- Size of the drops
-			part.Shape = Enum.PartType.Ball
-			part.Anchored = false
-			part.CanCollide = true
-			part.CollisionGroup = "Orbs"
-			game.Debris:AddItem(part,8)
-			local orbValue = Instance.new("IntValue")
-			orbValue.Parent = part
-			orbValue.Name = "Income"
-			orbValue.Value = dropper.Income.Value
+	local workingDropper
+	workingDropper = RunService.Heartbeat:Connect(function(deltaTime)
+		if dropper and dropper.Parent then
+			counter = counter + deltaTime
+			if counter >= timeRate then
+				counter = counter - timeRate
+				local part = Instance.new("Part")
+				part.Parent = dropper.Parent.Parent.IncomeOrbs
+				part.Name = "Research Orb"
+				part.Color = Color3.new(0.235294, 0, 1)
+				part.Material=("Neon")
+				part.CFrame = dropper.Drop.CFrame - Vector3.new(0,1.4,0)
+				part.Size=Vector3.new(1, 1, 1) -- Size of the drops
+				part.Shape = Enum.PartType.Ball
+				part.Anchored = false
+				part.CanCollide = true
+				part.CollisionGroup = "Orbs"
+				game.Debris:AddItem(part,8)
+				local orbValue = Instance.new("IntValue")
+				orbValue.Parent = part
+				orbValue.Name = "Income"
+				orbValue.Value = dropper.Income.Value
+			end
+		else
+			workingDropper:Disconnect()
 		end
 	end)
 end
@@ -225,12 +203,17 @@ function workingModel.Convoyer(convoyer)
 	local debounce = false
 	local playerCash = Players[convoyer.Parent.Parent.Owner.Value].leaderstats.Cash
 	local speed = convoyer.Speed.Value
-
-	RunService.Stepped:Connect(function(deltaTime)
-		convoyer.convoyer_belt.Velocity = convoyer.convoyer_belt.CFrame.lookVector * speed
+	local workingConvoyer
+	local workingCashplate
+	workingConvoyer = RunService.Stepped:Connect(function(deltaTime)
+		if convoyer and convoyer:FindFirstChild("convoyer_belt") then
+			convoyer.convoyer_belt.Velocity = convoyer.convoyer_belt.CFrame.lookVector * speed
+		else
+			workingConvoyer:Disconnect()
+			workingCashplate:Disconnect()
+		end
 	end)
-
-	convoyer.CashPlate.Touched:Connect(function(hit)
+	workingCashplate = convoyer.CashPlate.Touched:Connect(function(hit)
 		if debounce == false then
 			if hit:IsA("Part") and hit.Name == "Research Orb" then
 				debounce = true
@@ -245,7 +228,6 @@ end
 
 -- [[Main]] --
 Build(Map)
-
 Players.PlayerAdded:Connect(function(player)
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
@@ -256,7 +238,6 @@ Players.PlayerAdded:Connect(function(player)
 	currency.Parent = leaderstats
 	currency.Value = 0
 end)
-
 for i, teams in pairs(OwnerList) do
 	local team = Instance.new("Team")
 	team.Name = i
@@ -264,36 +245,28 @@ for i, teams in pairs(OwnerList) do
 	team.Parent = Teams
 	team.AutoAssignable = false
 end
-
 for i, tycoon in pairs(Map:GetChildren()) do
 	local defaultFloor = 1
-
 	local buttons = Instance.new("Folder")
 	buttons.Name = "Buttons"
 	buttons.Parent = tycoon
-
 	local incomeOrbs = Instance.new("Folder")
 	incomeOrbs.Name = "IncomeOrbs"
 	incomeOrbs.Parent = tycoon
-
 	local parts = Instance.new("Folder")
 	parts.Name = "Parts"
 	parts.Parent = tycoon
 	tycoon:WaitForChild("Base").Parent = parts
 	parts.Base.Anchored = true
-
-
 	local tycoonOwner = Instance.new("StringValue")
 	tycoonOwner.Name = "Owner"
 	tycoonOwner.Parent = tycoon
 	tycoonOwner.Value = ""
-
 	local claimPart = building.ClaimBase:Clone()
 	claimPart.Parent = parts
 	local thePosition = ThePosition(claimPart, building.Base, parts.Base)
 	local theRotation = Rotation(claimPart, building.Base, parts.Base)
 	claimPart:PivotTo(thePosition * theRotation)
-	
 	local debounce = false
 	local claimFunction
 	claimFunction = claimPart.Touched:Connect(function(hit)
@@ -304,19 +277,13 @@ for i, tycoon in pairs(Map:GetChildren()) do
 			then
 				if debounce == false then
 					debounce = true
-
 					local theBase = claimPart.Parent.Parent.Parts.Base
-
 					Players[hit.Parent.Name].Team = Teams[claimPart.Parent.Parent.Name]
 					OwnerList[tycoon.Name]["PlayerName"] = hit.Parent.Name
 					claimPart.Parent.Parent.Owner.Value = hit.Parent.Name
 					claimPart.OwnerGui.NameLabel.Text = "Owner: "..hit.Parent.Name
 					claimPart.Transparency = 1
-
 					Button(hit.Parent.Name, theBase, defaultFloor)
-
-					--claimFunction:Disconnect()
-
 					debounce = false
 				end
 			end	
@@ -324,4 +291,20 @@ for i, tycoon in pairs(Map:GetChildren()) do
 	end)
 end
 
--- Remove thing and datesaving on leaving not exist yet
+Players.PlayerRemoving:Connect(function(player)
+	for i, owner in pairs(OwnerList) do
+		if owner["PlayerName"] == player.Name then
+			for i, allFolder in pairs(Map[i]:GetChildren()) do
+				for i, allInstance in pairs(allFolder:GetChildren()) do
+					if allInstance.Name ~= "Base" and allInstance.Name ~= "ClaimBase" then
+						allInstance:Destroy()
+					end
+				end
+			end
+			Map[i].Parts.ClaimBase.Transparency = 0.5
+			Map[i].Parts.ClaimBase.OwnerGui.NameLabel.Text = "Touch to claim base!"
+			Map[i].Owner.Value = ""
+			owner["PlayerName"] = ""
+		end
+	end
+end)
