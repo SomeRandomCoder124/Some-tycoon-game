@@ -94,7 +94,7 @@ function Button(Owner, base, currentFloor)
 	end
 end
 
--- to calculate the position of buttons and model that pivot after purchasing, currently can't rotate
+-- to calculate the position of buttons and model that pivot after purchasing
 function ThePosition(buildPart, part1, part2)
 	local result = 0
 	local x = 0
